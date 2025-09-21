@@ -20,7 +20,7 @@
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       text-align: center;
-      width: 300px;
+      width: 320px;
     }
     h1 {
       font-size: 24px;
@@ -31,15 +31,16 @@
       width: 80%;
       border: 1px solid #ccc;
       border-radius: 8px;
+      margin-bottom: 10px;
     }
     button {
-      margin-top: 10px;
       padding: 10px 20px;
       border: none;
       border-radius: 8px;
       background: #4CAF50;
       color: white;
       cursor: pointer;
+      font-size: 16px;
     }
     button:hover {
       background: #45a049;
@@ -62,22 +63,39 @@
 
   <script>
     async function getWeather() {
-      const location = document.getElementById("locationInput").value;
+      const location = document.getElementById("locationInput").value.trim();
       const resultDiv = document.getElementById("result");
+
       if (!location) {
-        resultDiv.innerHTML = "Please enter a location.";
+        resultDiv.innerHTML = "⚠️ Please enter a location.";
         return;
       }
+
       try {
-        const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=3da6d2d040e44291aee43621252109&q=${location}&aqi=yes`);
+        const response = await fetch(
+          `https://api.weatherapi.com/v1/current.json?key=3da6d2d040e44291aee43621252109&q=${encodeURIComponent(location)}&aqi=yes`
+        );
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
         const data = await response.json();
+
         if (data.error) {
-          resultDiv.innerHTML = "City not found. Try again.";
+          resultDiv.innerHTML = "❌ City not found. Try again.";
         } else {
-          resultDiv.innerHTML = `Temperature in ${data.location.name}, ${data.location.country}: ${data.current.temp_c}°C`;
+          resultDiv.innerHTML = `
+            🌍 <b>${data.location.name}, ${data.location.country}</b><br>
+            🌡️ Temperature: ${data.current.temp_c}°C<br>
+            ☁️ Condition: ${data.current.condition.text}<br>
+            💧 Humidity: ${data.current.humidity}%<br>
+            <img src="https:${data.current.condition.icon}" alt="Weather icon">
+          `;
         }
       } catch (error) {
-        resultDiv.innerHTML = "Error fetching data.";
+        resultDiv.innerHTML = "⚠️ Unable to fetch data. Check internet or API key.";
+        console.error(error);
       }
     }
   </script>
